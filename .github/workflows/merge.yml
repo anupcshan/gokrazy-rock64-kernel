@@ -1,0 +1,37 @@
+name: Merge if labeled please-merge
+
+on:
+  pull_request:
+    branches: [ main ]
+    types: [ labeled ]
+
+jobs:
+
+  build:
+    name: CI
+    if: ${{ github.event.label.name == 'please-merge' }}
+    runs-on: ubuntu-latest
+    steps:
+
+    - name: Set up Go 1.x
+      uses: actions/setup-go@v4
+      with:
+        # Run on the latest minor release of Go 1.20:
+        go-version: ~1.20
+      id: go
+
+    - name: Check out code into the Go module directory
+      uses: actions/checkout@v4
+
+    - name: Merge if boot successful
+      env:
+        GITHUB_REPOSITORY: ${{ secrets.GITHUB_REPOSITORY }}
+        GH_USER: ${{ secrets.GH_USER }}
+        GH_AUTH_TOKEN: ${{ secrets.GH_AUTH_TOKEN }}
+        TRAVIS_PULL_REQUEST: ${{ github.event.pull_request.number }}
+        TRAVIS_PULL_REQUEST_BRANCH: ${{ github.event.pull_request.head.ref }}
+        BOOTERY_URL: ${{ secrets.BOOTERY_URL }}
+      run: |
+        GOPROXY=direct go install github.com/gokrazy/autoupdate/cmd/...@latest
+        GOPROXY=direct go install github.com/gokrazy/tools/cmd/gokr-packer@latest
+        if gokr-has-label please-merge; then set +e; gokr-merge -require_label=please-merge; ret=$?; [ $ret -eq 2 ] || exit $ret; fi

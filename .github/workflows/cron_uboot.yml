@@ -1,0 +1,37 @@
+name: Update u-boot revision
+
+on:
+  schedule:
+    # daily, hour and minute chosen arbitrarily
+    - cron:  '0 1 * * *'
+  workflow_dispatch:
+
+jobs:
+
+  build:
+    name: CI
+    runs-on: ubuntu-latest
+    steps:
+
+    - name: Set up Go 1.x
+      uses: actions/setup-go@v4
+      with:
+        # Run on the latest minor release of Go 1.20:
+        go-version: ~1.20
+      id: go
+
+    - name: Check out code into the Go module directory
+      uses: actions/checkout@v4
+
+    - name: Get dependencies
+      run: |
+        GOPROXY=direct go install github.com/anupcshan/gokrazyci/cmd/gokr-pull-uboot@latest
+
+    - name: Update uboot revision if newer commit is available
+      env:
+        GITHUB_REPOSITORY: ${{ secrets.GITHUB_REPOSITORY }}
+        GH_USER: ${{ secrets.GH_USER }}
+        GH_AUTH_TOKEN: ${{ secrets.GH_AUTH_TOKEN }}
+      if: ${{ env.GH_USER != 0 }}
+      run: |
+        gokr-pull-uboot
