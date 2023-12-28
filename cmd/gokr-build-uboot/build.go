@@ -58,7 +58,7 @@ func compile() error {
 	}
 	// u-boot began failing boot around commit 13819f07ea6c60e87b708755a53954b8c0c99a32.
 	// CONFIG_BOARD_LATE_INIT tries to load CROS_EC, which clearly doesn't exist on HC2.
-	if _, err := f.Write([]byte("CONFIG_CMD_SETEXPR=y\nCMD_SETEXPR_FMT=y\nCONFIG_BOARD_LATE_INIT=n\n")); err != nil {
+	if _, err := f.Write([]byte("CONFIG_CMD_SETEXPR=y\nCONFIG_BOARD_LATE_INIT=n\n")); err != nil {
 		return err
 	}
 	if err := f.Close(); err != nil {
