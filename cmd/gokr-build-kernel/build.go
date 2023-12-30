@@ -25,7 +25,7 @@ const firmwareSource = "https://git.kernel.org/pub/scm/linux/kernel/git/firmware
 const firmwareRevision = "eb8ea1b46893c42edbd516f971a93b4d097730ab"
 const firmwareLocation = "/tmp/firmware"
 
-var firmwareFiles = []string{"rtl_nic/rtl8153a-3.fw", "s5p-mfc-v8.fw"}
+var firmwareFiles = []string{}
 
 func downloadKernel() error {
 	out, err := os.Create(filepath.Base(latest))
@@ -106,14 +106,7 @@ func applyPatches(srcdir string) error {
 }
 
 func compile() error {
-	defconfig := exec.Command("make", "ARCH=arm", "exynos_defconfig")
-	defconfig.Stdout = os.Stdout
-	defconfig.Stderr = os.Stderr
-	if err := defconfig.Run(); err != nil {
-		return fmt.Errorf("make defconfig: %v", err)
-	}
-
-	f, err := os.OpenFile(".config", os.O_APPEND|os.O_WRONLY, 0644)
+	f, err := os.OpenFile(".config", os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0644)
 	if err != nil {
 		return err
 	}
@@ -125,17 +118,17 @@ func compile() error {
 		return err
 	}
 
-	olddefconfig := exec.Command("make", "ARCH=arm", "olddefconfig")
+	olddefconfig := exec.Command("make", "ARCH=arm64", "oldconfig")
 	olddefconfig.Stdout = os.Stdout
 	olddefconfig.Stderr = os.Stderr
 	if err := olddefconfig.Run(); err != nil {
 		return fmt.Errorf("make olddefconfig: %v", err)
 	}
 
-	make := exec.Command("make", "zImage", "dtbs", "-j"+strconv.Itoa(runtime.NumCPU()))
+	make := exec.Command("make", "Image", "dtbs", "-j"+strconv.Itoa(runtime.NumCPU()))
 	make.Env = append(os.Environ(),
-		"ARCH=arm",
-		"CROSS_COMPILE=arm-linux-gnueabihf-",
+		"ARCH=arm64",
+		"CROSS_COMPILE=aarch64-linux-gnu-",
 		"KBUILD_BUILD_USER=gokrazy",
 		"KBUILD_BUILD_HOST=docker",
 		"KBUILD_BUILD_TIMESTAMP=Wed Mar  1 20:57:29 UTC 2017",
@@ -215,11 +208,11 @@ func main() {
 		log.Fatal(err)
 	}
 
-	if err := copyFile("/tmp/buildresult/vmlinuz", "arch/arm/boot/zImage"); err != nil {
+	if err := copyFile("/tmp/buildresult/vmlinuz", "arch/arm64/boot/Image"); err != nil {
 		log.Fatal(err)
 	}
 
-	if err := copyFile("/tmp/buildresult/exynos5422-odroidhc1.dtb", "arch/arm/boot/dts/samsung/exynos5422-odroidhc1.dtb"); err != nil {
+	if err := copyFile("/tmp/buildresult/rk3328-rock64.dtb", "arch/arm64/boot/dts/rockchip/rk3328-rock64.dtb"); err != nil {
 		log.Fatal(err)
 	}
 }

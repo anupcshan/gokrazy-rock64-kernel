@@ -16,7 +16,7 @@ import (
 const dockerFileContents = `
 FROM debian:bookworm
 
-RUN apt-get update && apt-get install -y crossbuild-essential-armhf bc libssl-dev bison flex git
+RUN apt-get update && apt-get install -y crossbuild-essential-arm64 bc libssl-dev bison flex git python3 python3-setuptools swig python3-dev python3-pyelftools
 
 COPY gokr-build-uboot /usr/bin/gokr-build-uboot
 {{- range $idx, $path := .Patches }}
@@ -83,7 +83,7 @@ func find(filename string) (string, error) {
 		return filename, nil
 	}
 
-	path := filepath.Join(gopath, "src", "github.com", "anupcshan", "gokrazy-odroidxu4-kernel", filename)
+	path := filepath.Join(gopath, "src", "github.com", "anupcshan", "gokrazy-rock64-kernel", filename)
 	if _, err := os.Stat(path); err == nil {
 		return path, nil
 	}
@@ -131,7 +131,7 @@ func main() {
 	}
 	defer os.RemoveAll(tmp)
 
-	cmd := exec.Command("go", "install", "github.com/anupcshan/gokrazy-odroidxu4-kernel/cmd/gokr-build-uboot")
+	cmd := exec.Command("go", "install", "github.com/anupcshan/gokrazy-rock64-kernel/cmd/gokr-build-uboot")
 	cmd.Env = append(os.Environ(), "GOOS=linux", "CGO_ENABLED=0", "GOBIN="+tmp)
 	cmd.Stderr = os.Stderr
 	if err := cmd.Run(); err != nil {
@@ -147,16 +147,6 @@ func main() {
 			log.Fatal(err)
 		}
 		patchPaths = append(patchPaths, path)
-	}
-
-	ubootPath, err := find("u-boot.bin")
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	bootScrPath, err := find("boot.scr")
-	if err != nil {
-		log.Fatal(err)
 	}
 
 	// Copy all files into the temporary directory so that docker
@@ -232,11 +222,15 @@ func main() {
 		log.Fatalf("%s run: %v (cmd: %v)", execName, err, dockerRun.Args)
 	}
 
-	if err := copyFile(ubootPath, filepath.Join(tmp, "u-boot.bin")); err != nil {
-		log.Fatal(err)
-	}
-
-	if err := copyFile(bootScrPath, filepath.Join(tmp, "boot.scr")); err != nil {
-		log.Fatal(err)
+	for _, filename := range []string{
+		"boot.scr",
+		"u-boot.bin",
+		"u-boot-rockchip.bin",
+		"u-boot-spl.bin",
+		"u-boot-tpl.bin",
+	} {
+		if err := copyFile(filename, filepath.Join(tmp, filename)); err != nil {
+			log.Fatal(err)
+		}
 	}
 }
