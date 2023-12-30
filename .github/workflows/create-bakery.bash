@@ -28,7 +28,7 @@ cat > ~/gokrazy/bakery/config.json <<EOT
         }
     },
     "SerialConsole": "disabled",
-    "KernelPackage": "github.com/anupcshan/gokrazy-odroidxu4-kernel",
+    "KernelPackage": "github.com/anupcshan/gokrazy-rock64-kernel",
     "FirmwarePackage": "",
     "EEPROMPackage": ""
 }

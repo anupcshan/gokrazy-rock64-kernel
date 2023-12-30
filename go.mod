@@ -1,3 +1,3 @@
-module github.com/anupcshan/gokrazy-odroidxu4-kernel
+module github.com/anupcshan/gokrazy-rock64-kernel
 
 go 1.17

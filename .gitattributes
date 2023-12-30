@@ -1,0 +1,2 @@
+*.bin binary diff=hex
+vmlinuz binary diff=hex

@@ -44,8 +44,8 @@ func applyPatches(srcdir string) error {
 	return nil
 }
 
-func compile() error {
-	defconfig := exec.Command("make", "ARCH=arm", "odroid-xu3_defconfig")
+func compile(trustedFirmwareDir string) error {
+	defconfig := exec.Command("make", "ARCH=arm64", "rock64-rk3328_defconfig")
 	defconfig.Stdout = os.Stdout
 	defconfig.Stderr = os.Stderr
 	if err := defconfig.Run(); err != nil {
@@ -56,20 +56,19 @@ func compile() error {
 	if err != nil {
 		return err
 	}
-	// u-boot began failing boot around commit 13819f07ea6c60e87b708755a53954b8c0c99a32.
-	// CONFIG_BOARD_LATE_INIT tries to load CROS_EC, which clearly doesn't exist on HC2.
-	if _, err := f.Write([]byte("CONFIG_CMD_SETEXPR=y\nCONFIG_BOARD_LATE_INIT=n\n")); err != nil {
+	if _, err := f.Write([]byte("CONFIG_CMD_SETEXPR=y\n")); err != nil {
 		return err
 	}
 	if err := f.Close(); err != nil {
 		return err
 	}
 
-	make := exec.Command("make", "u-boot.bin", "-j"+strconv.Itoa(runtime.NumCPU()))
+	make := exec.Command("make", "-j"+strconv.Itoa(runtime.NumCPU()))
 	make.Env = append(os.Environ(),
-		"ARCH=arm",
-		"CROSS_COMPILE=arm-linux-gnueabihf-",
+		"ARCH=arm64",
+		"CROSS_COMPILE=aarch64-linux-gnu-",
 		"SOURCE_DATE_EPOCH="+strconv.Itoa(ubootTS),
+		fmt.Sprintf("BL31=%s/build/rk3328/release/bl31/bl31.elf", trustedFirmwareDir),
 	)
 	make.Stdout = os.Stdout
 	make.Stderr = os.Stderr
@@ -81,10 +80,10 @@ func compile() error {
 }
 
 func generateBootScr(bootCmdPath string) error {
-	mkimage := exec.Command("./tools/mkimage", "-A", "arm", "-O", "linux", "-T", "script", "-C", "none", "-a", "0", "-e", "0", "-n", "Gokrazy Boot Script", "-d", bootCmdPath, "boot.scr")
+	mkimage := exec.Command("./tools/mkimage", "-A", "arm", "-T", "script", "-C", "none", "-d", bootCmdPath, "boot.scr")
 	mkimage.Env = append(os.Environ(),
-		"ARCH=arm",
-		"CROSS_COMPILE=arm-linux-gnueabihf-",
+		"ARCH=arm64",
+		"CROSS_COMPILE=aarch64-linux-gnu-",
 		"SOURCE_DATE_EPOCH=1600000000",
 	)
 	mkimage.Stdout = os.Stdout
@@ -124,9 +123,31 @@ func copyFile(dest, src string) error {
 }
 
 func main() {
-	tmpDir, err := os.MkdirTemp(os.TempDir(), "u-boot")
+	ubootDir, err := os.MkdirTemp("", "u-boot")
 	if err != nil {
 		log.Fatal(err)
+	}
+
+	trustedFirmwareDir, err := os.MkdirTemp("", "arm-trusted-firmware")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	for _, cmd := range [][]string{
+		{"git", "init"},
+		{"git", "remote", "add", "origin", "https://github.com/ARM-software/arm-trusted-firmware.git"},
+		{"git", "fetch", "--depth=1", "origin", "e631ac3b217645a3d7615f3ea5214345be50da84"},
+		{"git", "checkout", "FETCH_HEAD"},
+		{"make", "SOURCE_DATE_EPOCH=1600000000", "CROSS_COMPILE=aarch64-linux-gnu-", "PLAT=rk3328"},
+	} {
+		log.Printf("Running %s", cmd)
+		cmdObj := exec.Command(cmd[0], cmd[1:]...)
+		cmdObj.Stdout = os.Stdout
+		cmdObj.Stderr = os.Stderr
+		cmdObj.Dir = trustedFirmwareDir
+		if err := cmdObj.Run(); err != nil {
+			log.Fatal(err)
+		}
 	}
 
 	var bootCmdPath string
@@ -136,7 +157,7 @@ func main() {
 		bootCmdPath = p
 	}
 
-	if err := os.Chdir(tmpDir); err != nil {
+	if err := os.Chdir(ubootDir); err != nil {
 		log.Fatal(err)
 	}
 
@@ -150,19 +171,19 @@ func main() {
 		cmdObj := exec.Command(cmd[0], cmd[1:]...)
 		cmdObj.Stdout = os.Stdout
 		cmdObj.Stderr = os.Stderr
-		cmdObj.Dir = tmpDir
+		cmdObj.Dir = ubootDir
 		if err := cmdObj.Run(); err != nil {
 			log.Fatal(err)
 		}
 	}
 
 	log.Printf("applying patches")
-	if err := applyPatches(tmpDir); err != nil {
+	if err := applyPatches(ubootDir); err != nil {
 		log.Fatal(err)
 	}
 
 	log.Printf("compiling uboot")
-	if err := compile(); err != nil {
+	if err := compile(trustedFirmwareDir); err != nil {
 		log.Fatal(err)
 	}
 
@@ -171,11 +192,17 @@ func main() {
 		log.Fatal(err)
 	}
 
-	if err := copyFile("/tmp/buildresult/u-boot.bin", "u-boot.bin"); err != nil {
-		log.Fatal(err)
-	}
-
-	if err := copyFile("/tmp/buildresult/boot.scr", "boot.scr"); err != nil {
-		log.Fatal(err)
+	for _, copyCfg := range []struct {
+		dest, src string
+	}{
+		{"boot.scr", "boot.scr"},
+		{"u-boot.bin", "u-boot.bin"},
+		{"u-boot-rockchip.bin", "u-boot-rockchip.bin"},
+		{"u-boot-spl.bin", "spl/u-boot-spl.bin"},
+		{"u-boot-tpl.bin", "tpl/u-boot-tpl.bin"},
+	} {
+		if err := copyFile(filepath.Join("/tmp/buildresult", copyCfg.dest), copyCfg.src); err != nil {
+			log.Fatal(err)
+		}
 	}
 }
