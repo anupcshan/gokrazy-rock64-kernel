@@ -55,7 +55,7 @@ jobs:
         gok -i bakery add .
         if gokr-has-label please-boot; then
             set -eu -o pipefail
-            echo "Ensuring odroidbake is running"
+            echo "Ensuring rock64bake is running"
             curl -s --max-time 300 "${BOOTERY_URL%/testboot}/power/"
             poweroff_url="${BOOTERY_URL%/testboot}/power/off"
             trap "curl -s --max-time 300 ${poweroff_url}" EXIT

@@ -1,0 +1,3 @@
+*.bin binary diff=hex
+*.scr binary diff=hex
+vmlinuz binary diff=hex
