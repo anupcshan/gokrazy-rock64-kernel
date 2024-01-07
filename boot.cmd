@@ -6,6 +6,9 @@ load ${devtype} ${devnum}:${bootpart} ${kernel_addr_r} vmlinuz
 # Emulate cmdline.txt behavior from Raspberry Pi devices.
 # Load cmdline.txt into memory (exact location doesn't matter, it shouldn't conflict with any other loads).
 load ${devtype} ${devnum}:${bootpart} ${ramdisk_addr_r} cmdline.txt
+setexpr cmdline_end ${ramdisk_addr_r} + ${filesize}
+# Write 0 byte to the end of cmdline.txt (to terminate the string).
+mw.w ${cmdline_end} 0 1
 # ... and set string value of var bootargs to it.
 # Requires CONFIG_CMD_SETEXPR=y while building u-boot.
 setexpr.s bootargs *${ramdisk_addr_r}
