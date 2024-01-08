@@ -11,11 +11,13 @@ import (
 	"strconv"
 )
 
-const ubootRev = "0a0ceea2269b983e736b80104f03cc800d1a5e2a"
+const ubootRev = "82750ce44226e5f2b3bbcd79cf7b3ba3dfd3de4d"
 const ubootTS = 1703441575
+const trustedRepoRev = "1c76dd2d6f6733638c77ad20e6a620b607696dce"
 
 const (
-	uBootRepo = "https://github.com/u-boot/u-boot"
+	uBootRepo           = "https://github.com/u-boot/u-boot"
+	trustedFirmwareRepo = "https://github.com/ARM-software/arm-trusted-firmware"
 )
 
 func applyPatches(srcdir string) error {
@@ -135,8 +137,8 @@ func main() {
 
 	for _, cmd := range [][]string{
 		{"git", "init"},
-		{"git", "remote", "add", "origin", "https://github.com/ARM-software/arm-trusted-firmware.git"},
-		{"git", "fetch", "--depth=1", "origin", "e631ac3b217645a3d7615f3ea5214345be50da84"},
+		{"git", "remote", "add", "origin", trustedFirmwareRepo},
+		{"git", "fetch", "--depth=1", "origin", trustedRepoRev},
 		{"git", "checkout", "FETCH_HEAD"},
 		{"make", "SOURCE_DATE_EPOCH=1600000000", "CROSS_COMPILE=aarch64-linux-gnu-", "PLAT=rk3328"},
 	} {
