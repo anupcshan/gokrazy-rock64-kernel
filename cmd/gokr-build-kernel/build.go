@@ -118,7 +118,7 @@ func compile() error {
 		return err
 	}
 
-	olddefconfig := exec.Command("make", "ARCH=arm64", "oldconfig")
+	olddefconfig := exec.Command("make", "ARCH=arm64", "olddefconfig")
 	olddefconfig.Stdout = os.Stdout
 	olddefconfig.Stderr = os.Stderr
 	if err := olddefconfig.Run(); err != nil {
