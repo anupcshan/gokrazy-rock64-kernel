@@ -13,7 +13,7 @@ import (
 
 const ubootRev = "485bfe1adbb3f6eb112424fc9e7cc399c16daef5"
 const ubootTS = 1709640535
-const trustedRepoRev = "1c76dd2d6f6733638c77ad20e6a620b607696dce"
+const trustedRepoRev = "10eb851f92acc67f7cdb955770e3bdced3026677"
 
 const (
 	uBootRepo           = "https://github.com/u-boot/u-boot"
