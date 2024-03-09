@@ -2,8 +2,9 @@
 CONFIG_IKCONFIG=y
 CONFIG_IKCONFIG_PROC=y
 
-# Disable modules - forces all modules to automatically be embedded into kernel binary
-CONFIG_MODULES=n
+# Can't disable modules because we're relying on generic arm64 defconfig.
+# Disabling modules will convert all modules to be built in, which is a lot.
+# CONFIG_MODULES=n
 
 # Disable wireless-y modules, like WiFi/BT
 CONFIG_BT=n
@@ -54,10 +55,12 @@ CONFIG_NR_CPUS=8
 CONFIG_HZ_100=y
 CONFIG_CMDLINE="console=ttyAMA0"
 
-CONFIG_OF=y
+# Needed to ensure DWMAC_ROCKCHIP is built, which is needed for Ethernet
+CONFIG_STMMAC_ETH=y
+CONFIG_STMMAC_PLATFORM=y
+CONFIG_DWMAC_GENERIC=y
 CONFIG_DWMAC_ROCKCHIP=y
 CONFIG_REALTEK_PHY=y
 
-# These take a while to build and are not needed for RK3328 boards
-CONFIG_DRM_AMDGPU=n
-CONFIG_DRM_NOUVEAU=n
+CONFIG_DRM=y
+CONFIG_DRM_ROCKCHIP=y
