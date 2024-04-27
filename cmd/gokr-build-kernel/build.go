@@ -21,12 +21,6 @@ var configContents []byte
 // see https://www.kernel.org/releases.json
 var latest = "https://cdn.kernel.org/pub/linux/kernel/v6.x/linux-6.8.7.tar.xz"
 
-const firmwareSource = "https://git.kernel.org/pub/scm/linux/kernel/git/firmware/linux-firmware.git/plain/%s?id=%s"
-const firmwareRevision = "eb8ea1b46893c42edbd516f971a93b4d097730ab"
-const firmwareLocation = "/tmp/firmware"
-
-var firmwareFiles = []string{}
-
 func downloadKernel() error {
 	out, err := os.Create(filepath.Base(latest))
 	if err != nil {
@@ -45,38 +39,6 @@ func downloadKernel() error {
 		return err
 	}
 	return out.Close()
-}
-
-func downloadFirmware() error {
-	for _, firmwareFile := range firmwareFiles {
-		dir := filepath.Dir(firmwareFile)
-		if dir != "" {
-			if err := os.MkdirAll(filepath.Join(firmwareLocation, dir), 0755); err != nil {
-				return err
-			}
-		}
-		out, err := os.Create(filepath.Join(firmwareLocation, firmwareFile))
-		if err != nil {
-			return err
-		}
-		defer out.Close()
-		resp, err := http.Get(fmt.Sprintf(firmwareSource, firmwareFile, firmwareRevision))
-		if err != nil {
-			return err
-		}
-		defer resp.Body.Close()
-		if got, want := resp.StatusCode, http.StatusOK; got != want {
-			return fmt.Errorf("unexpected HTTP status code for %s: got %d, want %d", firmwareFile, got, want)
-		}
-		if _, err := io.Copy(out, resp.Body); err != nil {
-			return err
-		}
-		if err := out.Close(); err != nil {
-			return err
-		}
-	}
-
-	return nil
 }
 
 func applyPatches(srcdir string) error {
@@ -177,15 +139,6 @@ func copyFile(dest, src string) error {
 }
 
 func main() {
-	log.Printf("downloading firmware")
-	if err := os.MkdirAll(firmwareLocation, 0755); err != nil {
-		log.Fatal(err)
-	}
-
-	if err := downloadFirmware(); err != nil {
-		log.Fatal(err)
-	}
-
 	log.Printf("downloading kernel source: %s", latest)
 	if err := downloadKernel(); err != nil {
 		log.Fatal(err)
