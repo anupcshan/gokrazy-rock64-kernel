@@ -19,7 +19,7 @@ import (
 var configContents []byte
 
 // see https://www.kernel.org/releases.json
-var latest = "https://cdn.kernel.org/pub/linux/kernel/v6.x/linux-6.9.6.tar.xz"
+var latest = "https://cdn.kernel.org/pub/linux/kernel/v6.x/linux-6.9.7.tar.xz"
 
 func downloadKernel() error {
 	out, err := os.Create(filepath.Base(latest))
