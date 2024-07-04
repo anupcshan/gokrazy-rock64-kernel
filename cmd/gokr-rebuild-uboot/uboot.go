@@ -16,7 +16,7 @@ import (
 const dockerFileContents = `
 FROM debian:bookworm
 
-RUN apt-get update && apt-get install -y crossbuild-essential-arm64 bc libssl-dev bison flex git python3 python3-setuptools swig python3-dev python3-pyelftools
+RUN apt-get update && apt-get install -y crossbuild-essential-arm64 bc libssl-dev bison flex git python3 python3-setuptools swig python3-dev python3-pyelftools uuid-dev libgnutls28-dev
 
 COPY gokr-build-uboot /usr/bin/gokr-build-uboot
 {{- range $idx, $path := .Patches }}
