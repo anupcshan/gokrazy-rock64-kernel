@@ -10,7 +10,7 @@ cat > ~/gokrazy/bakery/config.json <<EOT
     "Update": {
         "HTTPPassword": "${GOKRAZY_BAKERY_PASSWORD}"
     },
-    "DeviceType": "odroidhc1",
+    "DeviceType": "rock64",
     "Packages": [
         "github.com/gokrazy/breakglass",
         "github.com/gokrazy/bakery/cmd/bake",

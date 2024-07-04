@@ -1,47 +1,47 @@
-name: Testboot if labeled please-boot
-
-on:
-  pull_request:
-    branches: [ main ]
-    types: [ labeled ]
-
-jobs:
-
-  build:
-    name: CI
-    if: ${{ github.event.label.name == 'please-boot' }}
-    runs-on: ubuntu-latest
-    steps:
-
-    - name: Set up Go 1.x
-      uses: actions/setup-go@v4
-      with:
-        # Run on the latest minor release of Go 1.22:
-        go-version: ~1.22
-      id: go
-
-    - name: Check out code into the Go module directory
-      uses: actions/checkout@v4
-
+name: "Test boot"
+description: "Test boot u-boot and kernel changes"
+inputs:
+  github_repository:
+    required: true
+  gh_user:
+    required: true
+  gh_auth_token:
+    required: true
+  bootery_url:
+    required: true
+  bake_host:
+    required: true
+  gokrazy_bakery_password:
+    required: true
+  gokrazy_bake_password:
+    required: true
+  oauth-client-id:
+    required: true
+  oauth-secret:
+    required: true
+runs:
+  using: "composite"
+  steps:
     - name: Tailscale
       uses: tailscale/github-action@v2
       with:
-        oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
-        oauth-secret: ${{ secrets.TS_OAUTH_SECRET }}
+        oauth-client-id: ${{ inputs.oauth-client-id }}
+        oauth-secret: ${{ inputs.oauth-secret }}
         tags: tag:ci
 
     - name: Test Boot
       env:
-        GITHUB_REPOSITORY: ${{ secrets.GITHUB_REPOSITORY }}
-        GH_USER: ${{ secrets.GH_USER }}
-        GH_AUTH_TOKEN: ${{ secrets.GH_AUTH_TOKEN }}
+        GITHUB_REPOSITORY: ${{ inputs.github_repository }}
+        GH_USER: ${{ inputs.gh_user }}
+        GH_AUTH_TOKEN: ${{ inputs.gh_auth_token }}
         TRAVIS_PULL_REQUEST: ${{ github.event.pull_request.number }}
         TRAVIS_PULL_REQUEST_BRANCH: ${{ github.event.pull_request.head.ref }}
-        BOOTERY_URL: ${{ secrets.BOOTERY_URL }}
-        BAKE_HOST: ${{ secrets.BAKE_HOST }}
-        GOKRAZY_BAKERY_PASSWORD: ${{ secrets.GOKRAZY_BAKERY_PASSWORD }}
-        GOKRAZY_BAKE_PASSWORD: ${{ secrets.GOKRAZY_BAKE_PASSWORD }}
+        BOOTERY_URL: ${{ inputs.bootery_url }}
+        BAKE_HOST: ${{ inputs.bake_host }}
+        GOKRAZY_BAKERY_PASSWORD: ${{ inputs.gokrazy_bakery_password }}
+        GOKRAZY_BAKE_PASSWORD: ${{ inputs.gokrazy_bake_password }}
       if: ${{ env.GH_USER != 0 }}
+      shell: bash
       run: |
         mkdir -p extrafiles/github.com/gokrazy/breakglass/etc/
         echo 'ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIPrXgBg9kOZuG7j8ZkguxXbsJ5/bC1oILizs/BPsrF2c anupc@devbox' > extrafiles/github.com/gokrazy/breakglass/etc/breakglass.authorized_keys
@@ -62,5 +62,5 @@ jobs:
             echo "Updating u-boot"
             curl -s --max-time 300 --upload-file u-boot.bin --user gokrazy:${GOKRAZY_BAKE_PASSWORD} http://${BAKE_HOST}/update/device-specific/u-boot.bin
             echo "Test-booting"
-            cd ~/gokrazy/bakery && GOARCH=arm gokr-boot -require_label=please-boot -set_label=please-merge -bootery_url=$BOOTERY_URL
+            cd ~/gokrazy/bakery && gokr-boot -require_label=please-boot -set_label=please-merge -bootery_url=$BOOTERY_URL
         fi

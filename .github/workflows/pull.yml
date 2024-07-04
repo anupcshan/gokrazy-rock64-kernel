@@ -38,3 +38,15 @@ jobs:
         GOPROXY=direct go install github.com/gokrazy/autoupdate/cmd/...@latest
         GOPROXY=direct go install github.com/gokrazy/tools/cmd/gokr-packer@latest
         if ! gokr-has-label please-merge && ! gokr-has-label please-boot; then go install ./cmd/gokr-rebuild-kernel ./cmd/gokr-rebuild-uboot && gokr-rebuild-kernel -overwrite_container_executable=docker && gokr-rebuild-uboot -overwrite_container_executable=docker && GOPROXY=direct go install github.com/gokrazy/autoupdate/cmd/gokr-amend@latest && gokr-amend -set_label=please-boot *.dtb vmlinuz u-boot*.bin boot.scr; fi
+
+    - uses: ./.github/actions/testboot
+      with:
+        github_repository: ${{ secrets.GITHUB_REPOSITORY }}
+        gh_user: ${{ secrets.GH_USER }}
+        gh_auth_token: ${{ secrets.GH_AUTH_TOKEN }}
+        bootery_url: ${{ secrets.BOOTERY_URL }}
+        bake_host: ${{ secrets.BAKE_HOST }}
+        gokrazy_bakery_password: ${{ secrets.GOKRAZY_BAKERY_PASSWORD }}
+        gokrazy_bake_password: ${{ secrets.GOKRAZY_BAKE_PASSWORD }}
+        oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
+        oauth-secret: ${{ secrets.TS_OAUTH_SECRET }}
