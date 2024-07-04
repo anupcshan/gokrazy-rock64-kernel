@@ -60,7 +60,7 @@ runs:
             poweroff_url="${BOOTERY_URL%/testboot}/power/off"
             trap "curl -s --max-time 300 ${poweroff_url}" EXIT
             echo "Updating u-boot"
-            curl -s --max-time 300 --upload-file u-boot.bin --user gokrazy:${GOKRAZY_BAKE_PASSWORD} http://${BAKE_HOST}/update/device-specific/u-boot.bin
+            curl -s --max-time 300 --upload-file u-boot-rockchip.bin --user gokrazy:${GOKRAZY_BAKE_PASSWORD} http://${BAKE_HOST}/update/device-specific/u-boot-rockchip.bin
             echo "Test-booting"
             cd ~/gokrazy/bakery && gokr-boot -require_label=please-boot -set_label=please-merge -bootery_url=$BOOTERY_URL
         fi
