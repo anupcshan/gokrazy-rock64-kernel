@@ -1,9 +1,9 @@
 This repo is a fork of https://github.com/gokrazy/kernel.
 
-# gokrazy Odroid XU4/HC1/HC2 kernel repository
+# gokrazy Rock64 kernel repository
 
-This repository holds a pre-built Linux kernel image for Exynos5422-based
-Odroid boards (Odroid XU4/HC1/HC2), used by the [gokrazy](https://github.com/gokrazy/gokrazy) project.
+This repository holds a pre-built Linux kernel image for RK3328-based
+Rock64 from Pine64, used by the [gokrazy](https://github.com/gokrazy/gokrazy) project.
 
 The files in this repository are picked up automatically by
 `gokr-packer`, so you don’t need to interact with this repository
