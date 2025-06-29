@@ -11,8 +11,8 @@ import (
 	"strconv"
 )
 
-const ubootRev = "903eb123236ccbd8ef05d43507a2a910b785bd56"
-const ubootTS = 1750665967
+const ubootRev = "7027b445cc0bfb86204ecb1f1fe596f5895048d9"
+const ubootTS = 1751119843
 const trustedRepoRev = "10eb851f92acc67f7cdb955770e3bdced3026677"
 
 const (
