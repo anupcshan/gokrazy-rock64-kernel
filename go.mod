@@ -1,3 +1,3 @@
 module github.com/anupcshan/gokrazy-rock64-kernel
 
-go 1.25
+go 1.27
